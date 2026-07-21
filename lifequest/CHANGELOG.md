@@ -1,0 +1,172 @@
+# LifeQuest — Engineering Sprint Changelog
+
+## Sprint: Brand Identity Implementation ("The Ascent")
+
+Implemented the new LifeQuest brand mark across the entire codebase, replacing the placeholder `Swords` icon (lucide-react) used since the project's earliest scaffold.
+
+### What shipped
+- **`src/components/common/LogoMark.jsx`** — the production brand mark as a reusable `currentColor`-inheriting SVG React component (clean 18-point path, 24×24 viewBox matching the lucide icon grid so it drops in wherever the placeholder icon was).
+- Replaced every brand-mark usage across the app: `LoadingScreen`, `GatewayScreen`, `AuthShell` (Login/Signup/Reset), `Topbar`, `Sidebar`, `Landing`. Confirmed zero remaining references to the old icon anywhere in `src/` (one unrelated `Swords` reference remains in `constants.js` — that's an achievement *badge* icon, a different design decision, not the brand logo, and intentionally left alone).
+- **Full icon set regenerated and deployed**: `favicon.svg`, `icon-192.png`, `icon-512.png`, `icon-512-maskable.png` (with the extra safe-zone padding maskable icons require), `apple-touch-icon.png`, `favicon-32.png` — all built from the same source geometry as the React component, so the mark is pixel-consistent everywhere it appears.
+- **Manifest/theme colors corrected**: both `vite.config.js`'s PWA manifest and `index.html`'s `theme-color` meta tag were still on the old navy palette (`#0a0d1f`/`#05060f`) from before an earlier "deep charcoal" background sprint — updated to the brand's actual matte black (`#0B0B0D`) so the OS-level chrome (browser tab, Android splash, task switcher) matches the icon precisely instead of a slightly-off navy.
+- The Gateway Screen (the app's daily opening/splash moment) and `LoadingScreen` — the two places a "splash screen" concept actually lives in this app — both now show the real mark instead of the placeholder.
+
+### Verified
+Fresh-clone `npm install` (0 vulnerabilities) → `npm run lint` (0/0) → `npm run build` (clean, 44 PWA precache entries) → `npm run test` (11/11) → live preview server smoke test (all 6 icon files return 200, manifest JSON confirmed serving `#0B0B0D` for both theme and background color, and the mark's actual path data confirmed present in the shipped JS bundle rather than just existing as an unused source file).
+
+---
+
+
+A full architectural migration, not a patch: LifeQuest no longer has an XP economy. Progression is now governed by one rule — **discipline is binary**. Complete every due habit today, or the streak resets to zero. No partial credit, no protection, no second chances.
+
+### Removed completely
+- **XP**: `totalXp`, `xpValue` (per-habit), `xpReward` (daily/weekly quests), the entire exponential leveling curve (`utils/xp.js` deleted outright).
+- **Levels**: every "Level N" display, the `deriveLevel`/`deriveAttributeLevel` functions, level-based cosmetic unlocks.
+- **Coins**: `player.coins`, `coinGain`/`coinReward` on every completion/quest/achievement, the coin badge in Topbar/Sidebar/Profile/exports.
+- **XP animations**: the floating "+XP" popup, the XP bar fill, the "Level Up!" modal.
+- The old `RecentActivity` feed and its underlying `activity`/`extractActivity` tracking — fully removed, not just hidden.
+
+### New core system
+- **`utils/standing.js`** — `computeStreakInfo()` is a pure, fully-derived calculation from `habits` + `completions`: a day only extends the streak if *every* habit due that day was completed (checked retroactively via a new `isHabitDueOn(habit, date)` helper in `dateHelpers.js`). Days with zero due habits (e.g. a weekly habit's off-days) are neutral — they neither extend nor break the chain. This is never stored as an independently-mutated counter, so it can never drift out of sync with what actually happened.
+- **The Standing Ladder**: Awakened (1) → Pathfinder (7) → Iron Will (30) → Vanguard (50) → Ascendant (100) → Warden (200) → Mythic (365) → Titan (500) → Living Legend (1000). Replaces "Level" everywhere: Sidebar, Topbar, Profile, Settings/PDF export.
+- **`gameStore._recalculateStreak()`** is the single source of truth, called after every mutation that could affect it (habit completion, creation, edits, deletion). It also detects and surfaces two transient events: a Standing tier-up (`lastStandingUp`, shown via the new `StandingUpModal`) and a streak break (`lastStreakBreak`, shown via the new `StreakResetNotice`).
+- **Streak-reset message**: respectful, not punitive — "The streak ended. The journey didn't." / "Every legend has restarted. Begin again." (randomly chosen, shown once per break).
+- **Life attributes** kept (they suit "forging discipline" well) but rebuilt on `utils/attributes.js` — a simple linear mastery scale with qualitative tiers (Emerging/Developing/Established/Mastered), no XP curve underneath.
+- **Cosmetics** (avatars, themes) now unlock by consecutive-day streak thresholds instead of level.
+- **Achievements** are pure badges now — no `xp`/`coins` fields at all. Streak-based achievement thresholds mirror the Standing ladder directly for cohesion.
+- **Dashboard** rebuilt: the XP hero is gone, replaced by a `NextStandingCard` (Current Standing → Next Standing with an animated day-based progress line) and a new `YourJourney` panel (Current Streak, Longest Streak, Standing, Today's Completion, Next Standing, Days Remaining) — this is what replaced Recent Activity.
+- **Per-habit streaks** (shown on each habit card) are kept as a secondary, informational stat — still correctly reset on a gap via the existing `calculateStreak` helper — but they no longer drive progression; the global binary streak is the only thing that does.
+
+### Copy pass
+Every user-facing string that promised XP/leveling was rewritten: Landing page hero and feature cards, page title, meta description, PWA manifest name/description, Settings/Habits empty-state copy, and the Guild Master coach's suggestions/predictions (now framed around Standing and unbroken streaks instead of "leveling up").
+
+### Testing
+Extended the automated suite to 11 tests, including a dedicated regression test (`'has no XP, levels, or coins anywhere in player state'`) that asserts `player.totalXp` and `player.coins` are `undefined` — a permanent guarantee this migration can't quietly regress — plus a habit-completion test asserting the new streak actually increments to 1 on a fully-completed day.
+
+### Verified
+Fresh-clone `npm install` (0 vulnerabilities) → `npm run lint` (0/0) → `npm run build` (clean) → `npm run test` (11/11) → live preview server smoke test (all routes 200, Standing terminology confirmed present in the shipped JS bundle).
+
+### Explicitly out of scope this sprint
+Per direct instruction, this pass was scoped to *finishing the migration only* — no further redesign. The following ideas from the original "Tomorrow's Mission" brief are **not yet implemented** and remain honest, tracked gaps:
+- Time-of-day atmosphere theming (`utils/timeOfDay.js` exists with periods/greetings/color tokens defined, but is not yet wired into the Dashboard or Gateway Screen).
+- Gateway Screen time-based backgrounds (sunrise/sunset/stars).
+- Global text-selection disabling (except inputs).
+
+---
+
+Lead-engineer pass: root-cause bug fixes, architecture review, motion design, performance, and polish. Every change below was verified with a fresh `npm install` → `npm run lint` → `npm run build` → `npm run test`, plus a live runtime smoke test against the production preview server.
+
+---
+
+## Priority 1 — Runtime bugs
+
+### Fixed: "Maximum update depth exceeded" in LifeQuestForm (Habits/Quests crash)
+**Root cause:** `LifeQuestForm.jsx` selected state from Zustand like this:
+```js
+const habits = useGameStore((s) => s.habits.filter((h) => h.status === 'active'));
+```
+`.filter()` returns a **new array reference every single call**. Zustand compares selector output by reference, so the store looked "changed" on every render, which triggered another render, which called the selector again — an infinite loop. Because `LifeQuestForm` is mounted unconditionally by the Quests page (the `Modal` component only hides its content visually via `AnimatePresence`; the parent component's hooks still run), the loop fired the instant the Quests page mounted. The resulting uncaught error very likely tripped the app's root `ErrorBoundary`, which stays in its crashed state until a manual reload — explaining why Habits *also* appeared broken afterward, even though it doesn't use `LifeQuestForm` at all.
+
+**Fix:** select the raw, stable `habits` array and derive the filtered list with `useMemo`:
+```js
+const allHabits = useGameStore((s) => s.habits);
+const habits = useMemo(() => allHabits.filter((h) => h.status === 'active'), [allHabits]);
+```
+
+**Verification:** Added a permanent regression suite (`npm run test`, 10 tests) including:
+- A test that reproduces the *exact* reported crash (confirmed it throws "Maximum update depth exceeded" against the old code, confirmed it's silent against the fix).
+- Full click-through interaction tests: opening the New Life Quest modal, linking a habit, submitting; opening the New Habit form, creating a habit, and completing it — not just mounting pages, but exercising the actual reported user flow.
+- Smoke tests for every screen: Dashboard, Habits, Quests, Analytics, Achievements, Profile, Settings, Guild Master.
+
+### Fixed: auth listener leak
+`authStore.init()` registered a new Supabase `onAuthStateChange` listener every time it ran, with no unsubscribe. React 19's StrictMode double-invokes effects in development specifically to catch this class of bug — it would have registered two listeners and double-fired auth updates. Added a guard so `init()` only runs once, and it now returns an unsubscribe function that `App.jsx` wires into its effect cleanup.
+
+---
+
+## Priority 2 — Architecture review
+
+Systematically audited every component's store usage. Fixed the following unnecessary-rerender and architecture issues:
+
+- **`HabitCard`** (rendered once per habit, in lists on both Dashboard and Habits): was subscribing to the *entire* game store, so completing any one habit re-rendered every habit card on screen. Now selects only its own completion status (a primitive boolean — safe for reference-equality checks) and stable action references. Wrapped in `React.memo`.
+- **`LifeQuestCard`**: same treatment, wrapped in `React.memo`.
+- **`Habits.jsx` / `Dashboard.jsx`**: stabilized the `onEdit`/`onDelete` callbacks passed into `HabitCard` with `useCallback` (and a shared `noop` constant on Dashboard) — without this, `React.memo` on `HabitCard` would have been silently defeated by a fresh function reference every render.
+- **`Dashboard.jsx`, `Quests.jsx`, `Analytics.jsx`, `Achievements.jsx`, `Profile.jsx`, `Settings.jsx`, `GuildMaster.jsx`, `Sidebar.jsx`**: converted from whole-store destructuring (`const { a, b, c } = useGameStore()`) to targeted per-field selectors, and memoized derived arrays (`filtered`, `activeQuests`, etc.) with `useMemo`. Whole-store subscriptions meant these pages re-rendered on *every* mutation anywhere in the app (a weekly challenge ticking over, an achievement unlocking elsewhere), not just changes relevant to what they display.
+- **`App.jsx`**: same fix at the very top of the tree — this was the highest-impact instance, since it meant the entire router re-evaluated on every single store mutation.
+- **Timer cleanup**: added a `useRef` + cleanup effect to `GatewayScreen`'s dismiss timer so a fast unmount can't fire a stale callback. (`LevelUpModal` and `AchievementToastQueue` already cleaned up their timers correctly — verified, not changed.)
+
+**Known, intentionally out of scope:** `Login.jsx`, `Signup.jsx`, and `ResetPassword.jsx` still use whole-store `useAuthStore()` destructuring. These are single-purpose, low-traffic, pre-auth forms with no large lists or expensive children — the cost of this pattern here is not perceptible, so it was left as-is rather than spending time on a change with no real payoff.
+
+---
+
+## Priority 3 — Gateway Screen polish
+
+- Added subtle **cursor-driven parallax** on the background gradient orbs (desktop only — touch devices simply never fire `pointermove`, so the autonomous drift carries the effect there).
+- Added a **film grain texture** (SVG `feTurbulence`, ~3.5% opacity, overlay blend) so the gradients read as cinematic light rather than a flat digital glow.
+- Added a soft **breathing glow** behind the logo mark.
+- Refined quote typography (lighter weight, relaxed leading) for a more editorial, less "gamer HUD" feel.
+- Added the 400 (regular) weight for Space Grotesk to Google Fonts, since the quote now uses it.
+- Symmetrical "tap anywhere to continue" hint with matching pulse dots either side.
+
+---
+
+## Priority 4 — Motion design
+
+- **Navigation:** replaced the sidebar's abrupt active-state background swap with a shared-layout animated pill (`layoutId`) that smoothly slides between nav items on route change. Added a matching sliding active-dot indicator to the mobile bottom nav.
+- **Quest completion:** `LifeQuestCard` now detects the actual moment a quest crosses into "completed" (via a ref-tracked previous-status check, not on every render) and fires a confetti burst plus a brief scale-pulse — previously a quest just silently gained a badge.
+- **Buttons:** added tactile `active:scale-90` press feedback to the quest progress +/− and delete controls, matching the press feedback already present on primary/secondary buttons.
+- **Progress bars:** unified the easing on `LifeQuestCard`'s progress fill to the same cubic-bezier used elsewhere (`HabitCard`, `Topbar` XP bar) instead of a generic `transition-all`.
+- Cleaned up a stray duplicate/invalid Tailwind class (`w-4.5 h-4.5 w-[18px] h-[18px]`) on sidebar nav icons found while touching that file.
+
+*(Button press, page transitions, XP-gain popup, and progress-bar animation from the prior sprint were reviewed and left as-is — already solid.)*
+
+---
+
+## Priority 5 — Performance & startup
+
+- **Route-based code splitting:** every page (`Dashboard`, `Habits`, `Quests`, `Analytics`, `Achievements`, `Profile`, `Settings`, `GuildMaster`, plus the pre-auth pages) is now loaded via `React.lazy` behind a single `Suspense` boundary, instead of being bundled into one monolithic chunk regardless of whether the page is ever visited.
+  - **Before:** main JS chunk ≈154 KB (42 KB gzipped), with every page — including Analytics' Recharts usage — parsed and executed on first load.
+  - **After:** main JS chunk ≈80 KB (26 KB gzipped). Each page is now its own small chunk (1–11 KB), and the 423 KB Recharts vendor bundle is fetched only if the person actually opens Analytics.
+- All render-related fixes in Priority 2 double as performance fixes (fewer components re-rendering per state change, memoized derivations instead of recomputing/reallocating arrays every render).
+
+---
+
+## Priority 6 — Polish
+
+- Removed the invalid duplicate Tailwind width/height class on sidebar icons (cosmetic no-op before, now clean).
+- Verified no stray references to the old Orbitron font remain anywhere in the codebase after the Space Grotesk migration.
+- Added the missing 400-weight font declaration that the Gateway Screen's new typography needed (would otherwise have silently fallen back to a heavier synthesized weight).
+
+---
+
+## Testing infrastructure (new)
+
+Added a real, permanent automated test suite — not just manual verification:
+- **Vitest + jsdom + React Testing Library + user-event**, configured in `vitest.config.js` / `src/test/setup.js`.
+- `npm test` runs 10 tests: a regression test for the exact reported crash, full click-through flows for creating/completing habits and creating/linking life quests, and mount-smoke tests for all 8 app screens.
+- jsdom polyfills added for `ResizeObserver` (Recharts), `matchMedia`, and a full fake Canvas 2D context (`canvas-confetti`) so the suite runs cleanly with zero unhandled errors.
+- This suite is what proves the Priority 1 fix is real and durable — it's not just "it worked when I clicked around," it's a test that fails loudly against the old code and passes against the fix.
+
+---
+
+## Final verification (fresh-clone simulation)
+
+Performed against a completely fresh copy of the project (deleted `node_modules`, `dist`, `package-lock.json`, reinstalled from scratch) — exactly what a new developer would experience:
+
+| Step | Result |
+|---|---|
+| `npm install` | ✅ 0 vulnerabilities |
+| `npm run lint` | ✅ 0 warnings, 0 errors |
+| `npm run build` | ✅ clean, PWA assets generated (44 precache entries) |
+| `npm run test` | ✅ 10/10 passing |
+| App launches (`npm run preview`) | ✅ `/` → 200 |
+| Navigation (deep links) | ✅ `/app/habits`, `/app/analytics` → 200 via SPA fallback |
+| PWA | ✅ manifest, service worker, all 5 icon files → 200 |
+
+---
+
+## Known remaining issues / honest scope notes
+
+- **Login/Signup/ResetPassword** still use whole-store auth subscriptions (see Priority 2 note above) — low priority, no perceptible cost, left alone deliberately.
+- **`lucide-react` vendor chunk is ~630 KB** (156 KB gzipped) because several components need to look up icons dynamically by name (user-selected habit icons, achievement icons) via a namespace import (`import * as Icons from 'lucide-react'`), which defeats tree-shaking for those specific files. This is now isolated in its own cached vendor chunk and only affects first-visit cost, not subsequent navigation — a deliberate tradeoff for the dynamic-icon-picker feature, not an oversight.
+- **Supabase debounced sync** uses a single module-level timer; extremely rapid account switching (logout, then a different login, within the ~1.2s debounce window) could theoretically drop the first account's final sync. Only relevant when Supabase is actually configured (the app ships in local Demo Mode by default) and is a very narrow edge case — noted rather than fixed this sprint.
+- The Guild Master "AI coach" remains rule-based/local rather than calling an external LLM (as previously documented) — unchanged this sprint.

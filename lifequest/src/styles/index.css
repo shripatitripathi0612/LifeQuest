@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-navy-950 text-slate-100 font-body antialiased;
+  background-image: theme('backgroundImage.radial-glow'),
+    theme('backgroundImage.grid-pattern');
+  background-size: 100% 100%, theme('backgroundSize.grid');
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: theme('colors.navy.900');
+}
+::-webkit-scrollbar-thumb {
+  background: theme('colors.electric.600');
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: theme('colors.electric.500');
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-navy-800/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-card;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-panel-hover {
+    @apply glass-panel transition-all duration-300 hover:border-electric-500/40 hover:shadow-glow hover:-translate-y-0.5;
+  }
+
+  .font-display {
+    letter-spacing: -0.01em;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-electric-400 to-magenta-500;
+  }
+
+  .btn-primary {
+    @apply relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm
+    bg-gradient-to-r from-electric-500 to-magenta-500 text-white shadow-glow-sm
+    transition-all duration-200 ease-out hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]
+    disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-glow-sm disabled:active:scale-100;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm
+    bg-white/5 border border-white/10 text-slate-200 backdrop-blur-md
+    transition-all duration-200 ease-out hover:bg-white/10 hover:border-white/20 active:scale-[0.97];
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
+    text-slate-400 transition-all duration-150 ease-out hover:text-white hover:bg-white/5 active:scale-[0.96];
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-xl bg-navy-900/80 border border-white/10 text-slate-100
+    placeholder:text-slate-500 outline-none transition-all duration-200
+    focus:border-electric-500/60 focus:ring-2 focus:ring-electric-500/20;
+  }
+
+  .xp-bar-track {
+    @apply relative w-full h-3 rounded-full bg-navy-900 border border-white/10 overflow-hidden;
+  }
+
+  .xp-bar-fill {
+    @apply h-full rounded-full bg-gradient-to-r from-xp-from to-xp-to relative;
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+    transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .xp-bar-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.35),
+      transparent
+    );
+    background-size: 200px 100%;
+    animation: shimmer 2.2s linear infinite;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold
+    bg-white/5 border border-white/10 text-slate-300 transition-all duration-150;
+  }
+
+  .stat-card {
+    @apply glass-panel p-4 flex flex-col gap-1 transition-transform duration-200 hover:-translate-y-0.5;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400
+    transition-all duration-200 ease-out hover:text-white hover:bg-white/5 active:scale-[0.98];
+  }
+
+  .nav-link-active {
+    @apply text-white bg-gradient-to-r from-electric-500/20 to-magenta-500/10 border border-electric-500/30 shadow-glow-sm;
+  }
+}
+
+@layer utilities {
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Light mode overrides — LifeQuest is designed dark-first, but the Settings
+   toggle switches these core surfaces so light mode remains fully usable. */
+html.light body {
+  @apply bg-slate-100 text-slate-900;
+  background-image: none;
+}
+html.light .glass-panel,
+html.light .glass-panel-hover {
+  @apply bg-white/90 border-slate-200 text-slate-900;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+}
+html.light .input-field {
+  @apply bg-white border-slate-300 text-slate-900 placeholder:text-slate-400;
+}
+html.light .nav-link {
+  @apply text-slate-500;
+}
+html.light .nav-link:hover {
+  @apply text-slate-900 bg-slate-900/5;
+}
+html.light .btn-secondary {
+  @apply bg-slate-900/5 border-slate-300 text-slate-700;
+}
+html.light .xp-bar-track {
+  @apply bg-slate-200 border-slate-300;
+}
+html.light .badge {
+  @apply bg-slate-900/5 border-slate-300 text-slate-600;
+}
+html.light ::-webkit-scrollbar-track {
+  background: theme('colors.slate.200');
+}
