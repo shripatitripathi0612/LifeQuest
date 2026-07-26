@@ -1,5 +1,33 @@
 # LifeQuest — Engineering Sprint Changelog
 
+## Sprint: Logo Redesign — "The Ascent Line" (flame concept rejected, redesigned from scratch)
+
+The previous flame-based mark was rejected outright — too close to gaming/RPG iconography. Redesigned from a clean slate around the brief's actual territory: a path, a horizon, a compass, quiet upward direction.
+
+### Process
+Explored and rejected two literal concepts before converging:
+- **Horizon + rising sun** (a semicircle sitting on a horizontal bar): legible even at 16px, but it's one of the most well-worn pictograms in existence (weather apps, sunrise-alarm apps, countless wellness brands already use almost exactly this). Fully symmetric and static — no sense of the "subtle upward movement" the brief asked for. Discarded.
+- **Three ascending bars** (a growth-chart glyph): the clearest possible semantic read of "progress," and also the single most generic one — it's the default "Analytics" tab icon in half the apps on Earth. Reads as a UI icon, not a brand mark. Discarded.
+
+Converged on **a single tapered stroke following one gentle, continuous arc** — thick and grounded at the lower-left, thinning as it rises to the upper-right. It's built as a short segment of one large-radius circle (not a tight S-curve), so the curvature stays quiet and architectural rather than "swoosh"-like. One gesture reads simultaneously as a path, a horizon curving away, and a compass bearing, without any of them being drawn literally — closer to how the Nike swoosh or an Airbnb Bélo works (an abstract gesture, not an assembled pictogram of parts).
+
+### Verification without reliable visual rendering feedback this session
+Design iteration tools weren't returning inspectable visual output reliably mid-session, so every construction decision was verified **quantitatively** instead of by eye: bounding-box aspect ratio (locked to ~0.92–1.0, ideal for square icon framing), centroid-vs-bounding-box-center offset (the mark is intentionally asymmetric — grounded on one end, tapered on the other — so it's optically centered in the icon by centroid, not naive bounding-box centering), polygon signed-area sanity checks, and a connected-components/enclosed-holes analysis (via `scipy.ndimage`) confirming the rendered shape is a single clean silhouette with zero fragments or holes at 512px, 32px, and 16px. A real construction bug was caught this way — an earlier version of the rounded end-cap had an ambiguous 180° sweep direction that produced a 16-unit discontinuity (a self-intersecting "bowtie" fold); rebuilt with explicit direction vectors instead of interpolated angles, verified down to a sub-pixel-at-render-scale 3.5-unit segment (which turned out to just be the intentional flat tip width, not a defect).
+
+### Shipped
+- `src/components/common/LogoMark.jsx` replaced with the new mark (same `currentColor`-inheriting component interface, so all 6 existing usage sites — `LoadingScreen`, `GatewayScreen`, `AuthShell`, `Topbar`, `Sidebar`, `Landing` — picked it up automatically with no per-file changes needed).
+- Full icon set regenerated from the same verified geometry: `favicon.svg`, `icon-192.png`, `icon-512.png`, `icon-512-maskable.png`, `apple-touch-icon.png`, `favicon-32.png`.
+
+### Also fixed this sprint: dependency vulnerabilities
+A fresh `npm install` (regenerating `package-lock.json`) surfaced 10 high-severity advisories that weren't present in the previous lockfile — newly disclosed/published since the last sprint, not caused by this sprint's changes. Investigated and resolved properly rather than blindly running `npm audit fix --force`:
+- **`brace-expansion` DoS** (via a transitive `vite-plugin-pwa` → `workbox-build` → ... chain): fixed with a surgical `"overrides": { "brace-expansion": "^5.0.8" }` in `package.json`, patching the vulnerable package everywhere in the tree without downgrading `vite-plugin-pwa` and losing its features.
+- **`react-router-dom`**: discovered that *every* currently-published version has some high-severity advisory — versions below 7.18.0 carry a large set of older XSS/open-redirect/DoS issues (some relevant to plain client-side `Link`/`useNavigate` usage), while 7.18.1 fixes all of those but is newly flagged for an "RSC Mode CSRF Bypass." Confirmed via exhaustive grep that LifeQuest contains zero usage of React Router's RSC/data-router/server-action APIs (`loader`, `action`, `unstable_`, `createBrowserRouter`, `<Form>`) anywhere — it's a plain client-rendered SPA using only `BrowserRouter`/`Routes`/`Route`/`Link`/`Navigate`/`useNavigate`/`useLocation`. Pinned to the exact version `7.18.1` (latest) as the correct tradeoff: fixes the broader, actually-applicable advisory set; the one remaining flagged CVE requires a feature this codebase never touches.
+
+### Verified
+Fresh-clone `npm install` → `npm run lint` (0/0) → `npm run build` (clean) → `npm run test` (11/11).
+
+---
+
 ## Sprint: Brand Identity Implementation ("The Ascent")
 
 Implemented the new LifeQuest brand mark across the entire codebase, replacing the placeholder `Swords` icon (lucide-react) used since the project's earliest scaffold.
