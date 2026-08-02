@@ -1,5 +1,70 @@
 # LifeQuest — Engineering Sprint Changelog
 
+## Sprint: Dashboard Redesign — "Consistency over motivation, Standing over XP, Calm over dopamine"
+
+A full presentation-layer redesign of the Dashboard and its supporting shared design tokens. No logic changed: streak calculation, Standing calculation, stores, hooks, and auth are all untouched — confirmed by the full pre-existing test suite passing unmodified in behavior (two tests needed their *selectors* updated to match new markup/copy, not their assertions).
+
+### Hero
+Rebuilt around a message-first hierarchy: **"Show Up Today. Become Unbreakable."** as the headline (Space Grotesk), "Your future isn't built tomorrow. It's built today." as a quiet supporting line (Inter), then Standing / Streak / Today's Completion as a calm three-stat row beneath — the actual data, presented with restraint instead of as a HUD. The avatar moved from a hero-dominating element to a small, unobtrusive corner chip — present (nothing was removed), but no longer competing with the message for attention.
+
+### Color system — purple removed as the dominant identity
+Redefined the *values* behind the existing `electric`/`cyan`/`magenta` tokens and every shadow/glow utility (kept the token names, so every existing `text-electric-400`, `shadow-glow`, etc. across the whole app inherits the change automatically — a systemic fix, not a file-by-file find-and-replace). New palette: matte black `#0B0B0D` (background) / `#111214` (cards) — both exact values as specified — `rgba(255,255,255,0.06)` borders, restrained amber/gold as the single accent, soft desaturated emerald/red for success/danger states. Also caught and fixed a real leftover: the `wisdom` life-attribute's color was literally `#a855f7` (bright purple) — muted the entire 8-color attribute palette to a cohesive, restrained set in the same pass.
+
+### Background
+Removed the grid overlay and the purple/blue/magenta three-layer glow entirely. Replaced with a single radial gradient at ~3.5% white opacity — deliberately close to invisible.
+
+### Typography
+Space Grotesk narrowed to exactly three places per spec: hero headline, Standing name, streak number. Section headers (previously also set in Space Grotesk from an earlier sprint) moved back to Inter — a correction, not a new decision.
+
+### Layout & hierarchy
+Reordered to the specified flow: Hero → Today's Progress (new dedicated section, promoted out of a subheading into its own calm moment) → Today's Habits → Weekly Progress → Life Quests → Journey/Attributes (secondary, grouped at the bottom). Every panel now shares one card language: `rounded-3xl`, `border-white/[0.06]`, consistent `p-6 sm:p-8` padding, unified header treatment.
+
+### CTA hierarchy
+The habit checklist is the visual anchor of its section; "Add habit" demoted to a quiet ghost-style button — text-only, no fill, no shadow.
+
+### Habit cards
+More whitespace (`p-4`→`p-5`), softer tap response (`0.88`→`0.96` scale), and the completion moment redesigned: the old "checkmark flies up and away" animation and confetti burst are gone, replaced by a single contained scale-pulse on the checkbox itself. Satisfying without being a celebration — Apple Fitness closing a ring, not Duolingo's confetti cannon.
+
+### Weekly Progress
+Added a one-line, calm interpretation of the week's actual completion data ("Consistency is building." / "You're showing up." / "Keep the chain alive.") — purely a presentational read of data the component already receives, not a new calculation feeding back into the store.
+
+### Sidebar
+Grouped the same eight nav items (nothing removed) into three labeled, spaced clusters — Overview / Insights / Account — instead of one flat list, with more breathing room around the profile card.
+
+### Motion audit
+Reviewed every Dashboard-scoped animation against "fade / translateY / opacity / gentle hover elevation only." Removed: the confetti burst on habit completion, the floating-checkmark fly-away, and an overly bouncy `0.88` tap-scale. Kept: staggered fade-up entrances, one very slow (22s) near-invisible ambient hero highlight, and the count-up number reveal — all of which already matched the "disappears into the experience" standard.
+
+### Responsive audit
+Reduced hero headline/stat sizing and stat-row gap on mobile breakpoints, and added right-side clearance so hero text can never run under the corner avatar chip on narrow screens — checked at mobile/tablet/desktop widths.
+
+### Regressions caught and fixed before finishing
+A full lint/build/test pass surfaced two real test breaks caused by the redesign itself: a header now uses a typographic curly apostrophe (`Today’s Habits`) that a test regex expected as straight; and a test located the habit-completion button by matching specific CSS classes (`rounded-xl`, `border-2`) that the redesign changed. Fixed the first by updating the regex to match the (correct, more premium) typography rather than reverting it; fixed the second properly rather than papering over it — added a real `aria-label` to the completion toggle (a genuine accessibility gap that existed before, now closed) and pointed the test at that instead of implementation-detail class names, so future visual changes won't break it again.
+
+### Verified
+`npm run lint` (0/0) → `npm run build` (clean) → `npm run test` (11/11, confirmed stable across 3 consecutive full runs after one transient timing flake unrelated to any code change) — repeated against a completely fresh clone, plus a live preview-server check confirming the new hero copy and styling are present in the actual shipped `Dashboard` chunk.
+
+---
+
+## Sprint: Dashboard Hero Redesign — first-impression polish only
+
+Scoped strictly to the Dashboard's opening moment, as requested — no new features, no functional changes, no app-wide redesign. Every change below is presentation-only; all underlying data, logic, and store calls are untouched.
+
+### What changed
+- **New hero surface**: replaced the old two-card grid (a small avatar card sitting next to a "Next Standing" card) with a single, considered hero (`DashboardHero.jsx`). The avatar is now a quiet secondary chip rather than competing for attention with the headline.
+- **Sophisticated dark background, no purple**: added a bespoke `.hero-surface` treatment in `index.css` — a neutral graphite gradient (`#131316` → `#0c0c0e` → `#08080a`) with soft directional highlights, scoped specifically to this hero via a new CSS class. The rest of the app's existing ambient background (which does use purple) is untouched — this was a deliberate choice to keep the change scoped to "the Dashboard's first impression" rather than reworking the app's whole visual language.
+- **Typography**: the Standing name is now the clear headline (`text-5xl`/`6xl`, tight tracking, confident weight) with a proper eyebrow/label hierarchy above it, matching how Linear/Apple Fitness/Arc treat a primary stat. Section headers below (Today's Habits, This Week, Active Life Quests, Life Attributes) got a consistent, slightly more refined treatment (display font, tighter tracking) and consistent spacing rhythm (`mb-5` everywhere, `p-5 sm:p-6` panel padding) — previously these varied slightly panel to panel.
+- **Refined progress bar**: the standing-progress fill moved from the app's busy orange→purple→cyan rainbow gradient to a single restrained warm-neutral tone (`.hero-progress-fill`) — quieter, more premium, and avoids purple in this specific "first impression" surface as asked.
+- **Subtle premium animation**: a staggered entrance (label → headline → progress → caption, ~80ms apart, eased) instead of everything appearing at once; one slow, barely-there ambient highlight drift in the background (22s cycle, very low opacity — restrained on purpose, not a decoration that calls attention to itself); and a count-up animation for the streak number (`AnimatedNumber.jsx`), the kind of detail Apple Fitness/Linear use for stat reveals. The count-up correctly respects the app's existing Settings → Animations toggle rather than introducing a new preference.
+- **Removed now-dead code**: `NextStandingCard.jsx` was fully superseded by the new hero and had no other usages anywhere in the app (confirmed via grep before deleting) — removed rather than left behind, consistent with this project's established "no unused logic" standard from earlier sprints.
+
+### Deliberately not touched
+Per "do not redesign the entire app": the global body background, Topbar, Sidebar, and every other page's visual language are unchanged. Per "do not add new features": no new data, no new interactions, no new settings — `AnimatedNumber` and the hero's ambient motion both read from data/settings that already existed.
+
+### Verified
+`npm run lint` (0/0) → `npm run build` (clean) → `npm run test` (11/11) after the change, then a full fresh-clone repeat of all three, plus a live preview-server check confirming the new hero's markup and styling are actually present in the shipped, code-split `Dashboard` chunk (not just sitting in source).
+
+---
+
 ## Sprint: Logo Redesign — "The Ascent Line" (flame concept rejected, redesigned from scratch)
 
 The previous flame-based mark was rejected outright — too close to gaming/RPG iconography. Redesigned from a clean slate around the brief's actual territory: a path, a horizon, a compass, quiet upward direction.

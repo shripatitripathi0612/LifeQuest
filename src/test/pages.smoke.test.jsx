@@ -38,7 +38,7 @@ describe('LifeQuest — page smoke tests', () => {
 
   it('renders the Dashboard without crashing', async () => {
     await renderAuthenticatedAt('/app');
-    expect(await screen.findByText(/Today's Habits/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Today[’']s Habits/i)).toBeInTheDocument();
   });
 
   it('renders the Habits page without crashing (regression: infinite loop)', async () => {
@@ -135,8 +135,7 @@ describe('LifeQuest — page smoke tests', () => {
     expect(habitName).toBeInTheDocument();
 
     // Complete it — exercises the streak/achievement/completion pipeline end to end.
-    const toggleButtons = screen.getAllByRole('button').filter((b) => b.className.includes('rounded-xl') && b.className.includes('border-2'));
-    await user.click(toggleButtons[0]);
+    await user.click(screen.getByRole('button', { name: /Mark Drink water as done/i }));
 
     await waitFor(() => {
       expect(useGameStore.getState().completions.length).toBe(1);

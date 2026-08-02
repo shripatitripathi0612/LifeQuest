@@ -8,10 +8,11 @@ import HabitForm from '../components/habits/HabitForm';
 import AttributeBar from '../components/dashboard/AttributeBar';
 import DailyQuestPanel from '../components/dashboard/DailyQuestPanel';
 import YourJourney from '../components/dashboard/YourJourney';
-import NextStandingCard from '../components/dashboard/NextStandingCard';
+import DashboardHero from '../components/dashboard/DashboardHero';
+import TodaysProgress from '../components/dashboard/TodaysProgress';
 import WeekStrip from '../components/dashboard/WeekStrip';
 import EmptyState from '../components/common/EmptyState';
-import { ATTRIBUTES, AVATARS } from '../utils/constants';
+import { ATTRIBUTES } from '../utils/constants';
 import { isHabitDueToday } from '../utils/dateHelpers';
 
 // Stable no-op so HabitCard's React.memo isn't defeated by a fresh function
@@ -30,7 +31,6 @@ export default function Dashboard() {
   const lifeQuests = useGameStore((s) => s.lifeQuests);
   const addHabit = useGameStore((s) => s.addHabit);
   const [formOpen, setFormOpen] = useState(false);
-  const avatar = AVATARS.find((a) => a.key === player.avatar) || AVATARS[0];
 
   // Same rule the store's todaysHabits() action uses internally — imported
   // directly so there's exactly one implementation of "is this due today",
@@ -53,95 +53,89 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Hero row */}
-      <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-5 items-stretch">
-        <div className="glass-panel p-5 sm:p-6 flex sm:flex-col items-center justify-center gap-3 sm:w-48">
-          <span className="text-4xl">{avatar.emoji}</span>
-          <h2 className="font-display text-base font-bold text-white text-center">{avatar.label}</h2>
+    <div className="flex flex-col gap-8">
+      {/* 1. Hero */}
+      <DashboardHero streak={player.streak} avatarKey={player.avatar} todaysCompletionPct={completionPct} />
+
+      {/* 2. Today's Progress */}
+      <TodaysProgress completed={completedToday} total={habitsToday.length} pct={completionPct} />
+
+      {/* 3. Today's Habits — the primary action on this page */}
+      <div className="glass-panel p-6 sm:p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-[15px] font-semibold text-white tracking-tight">Today&rsquo;s Habits</h3>
+          <button onClick={() => setFormOpen(true)} className="btn-ghost text-xs px-3 py-1.5">
+            <Plus className="w-3.5 h-3.5" /> Add habit
+          </button>
         </div>
-        <NextStandingCard streak={player.streak} />
+
+        {habitsToday.length === 0 ? (
+          <EmptyState
+            icon={ListChecks}
+            title="No habits scheduled today"
+            description="Create a habit to begin building your streak."
+            action={{ label: 'Create Habit', onClick: () => setFormOpen(true) }}
+          />
+        ) : (
+          <div className="flex flex-col gap-2.5">
+            {habitsToday.map((h) => (
+              <HabitCard key={h.id} habit={h} onEdit={noop} onDelete={noop} showActions={false} />
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left / main column */}
-        <div className="lg:col-span-2 flex flex-col gap-5">
-          <div className="glass-panel p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="font-semibold text-white">Today's Habits</h3>
-                <p className="text-xs text-slate-500">{completedToday} completed today · {completionPct}%</p>
-              </div>
-              <button onClick={() => setFormOpen(true)} className="btn-secondary text-xs px-3 py-1.5">
-                <Plus className="w-3.5 h-3.5" /> Add
-              </button>
-            </div>
+      {/* 4. Weekly Progress */}
+      <div className="glass-panel p-6 sm:p-8">
+        <h3 className="text-[15px] font-semibold text-white tracking-tight mb-6">Weekly Progress</h3>
+        <WeekStrip />
+      </div>
 
-            {habitsToday.length === 0 ? (
-              <EmptyState
-                icon={ListChecks}
-                title="No habits scheduled today"
-                description="Create a habit to begin building your streak."
-                action={{ label: 'Create Habit', onClick: () => setFormOpen(true) }}
-              />
-            ) : (
-              <div className="flex flex-col gap-2.5">
-                {habitsToday.map((h) => (
-                  <HabitCard key={h.id} habit={h} onEdit={noop} onDelete={noop} showActions={false} />
-                ))}
+      {/* 5. Life Quests */}
+      <div className="glass-panel p-6 sm:p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-[15px] font-semibold text-white tracking-tight">Life Quests</h3>
+          <Link to="/app/quests" className="text-xs text-electric-400 hover:text-electric-300 font-medium">View all</Link>
+        </div>
+        {activeQuests.length === 0 ? (
+          <EmptyState icon={Compass} title="No active quests" description="Set a long-term goal to work toward." />
+        ) : (
+          <div className="flex flex-col gap-4">
+            {activeQuests.map((q) => (
+              <div key={q.id}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm text-slate-300 font-medium">{q.title}</span>
+                  <span className="text-xs text-slate-500">{q.progress}/{q.target}</span>
+                </div>
+                <div className="h-[3px] rounded-full bg-white/[0.06] overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-electric-500/70"
+                    style={{ width: `${Math.min(100, (q.progress / q.target) * 100)}%` }}
+                  />
+                </div>
               </div>
-            )}
+            ))}
           </div>
+        )}
+      </div>
 
-          <div className="glass-panel p-5">
-            <h3 className="font-semibold text-white mb-4">This Week</h3>
-            <WeekStrip />
+      {/* 6. Everything else — Journey & Attributes, secondary information */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <DailyQuestPanel />
+
+        <div className="glass-panel p-6 sm:p-8">
+          <div className="flex items-center gap-2 mb-6">
+            <TrendingUp className="w-4 h-4 text-electric-400" />
+            <h3 className="text-[15px] font-semibold text-white tracking-tight">Life Attributes</h3>
           </div>
-
-          <div className="glass-panel p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-white">Active Life Quests</h3>
-              <Link to="/app/quests" className="text-xs text-electric-400 hover:text-electric-300 font-medium">View all</Link>
-            </div>
-            {activeQuests.length === 0 ? (
-              <EmptyState icon={Compass} title="No active quests" description="Set a long-term goal to work toward." />
-            ) : (
-              <div className="flex flex-col gap-3">
-                {activeQuests.map((q) => (
-                  <div key={q.id}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-slate-300 font-medium">{q.title}</span>
-                      <span className="text-xs text-slate-500">{q.progress}/{q.target}</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-navy-900 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-magenta-500 to-electric-500"
-                        style={{ width: `${Math.min(100, (q.progress / q.target) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div className="flex flex-col gap-3.5">
+            {ATTRIBUTES.map((a) => (
+              <AttributeBar key={a.key} attribute={a} points={player.attributes[a.key]} />
+            ))}
           </div>
         </div>
 
-        {/* Right sidebar column */}
-        <div className="flex flex-col gap-5">
-          <DailyQuestPanel />
-
-          <div className="glass-panel p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-4 h-4 text-electric-400" />
-              <h3 className="font-semibold text-white text-sm">Life Attributes</h3>
-            </div>
-            <div className="flex flex-col gap-3.5">
-              {ATTRIBUTES.map((a) => (
-                <AttributeBar key={a.key} attribute={a} points={player.attributes[a.key]} />
-              ))}
-            </div>
-          </div>
-
+        <div className="lg:col-span-2">
           <YourJourney
             streak={player.streak}
             longestStreak={player.longestStreak}

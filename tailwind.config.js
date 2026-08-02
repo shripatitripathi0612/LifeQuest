@@ -5,62 +5,81 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Matte black scale — precise spec: background #0B0B0D, card surface
+        // #111214. Key name kept as `navy` so every existing
+        // bg-navy-*/border-navy-* class across the app (not just Dashboard)
+        // picks up the calmer tone for free, without touching each file.
         navy: {
-          950: '#030305',
-          900: '#0a090d',
-          800: '#131218',
-          700: '#1b1a22',
-          600: '#25232e',
+          950: '#0B0B0D',
+          900: '#111113',
+          800: '#111214',
+          700: '#1A1B1E',
+          600: '#232427',
         },
+        // Restrained sunrise gold/amber — replaces purple as the app's
+        // single accent. Key name kept as `electric` so every existing
+        // text-electric-*/bg-electric-*/border-electric-* class inherits
+        // the new color everywhere, without touching each file.
         electric: {
-          400: '#a855f7',
-          500: '#9333ea',
-          600: '#7e22ce',
+          400: '#e0b374',
+          500: '#cf9a4c',
+          600: '#a97a35',
         },
+        // Muted, desaturated — no longer a competing neon accent, just a
+        // quiet cool-neutral tone for the rare spot that needs a second,
+        // non-amber note (e.g. a chart line).
         cyan: {
-          300: '#67e8f9',
-          400: '#22d3ee',
-          500: '#06b6d4',
+          300: '#b7c4c9',
+          400: '#9db4c0',
+          500: '#7e97a3',
         },
+        // Muted warm clay — replaces bright magenta in gradients (e.g.
+        // quest progress fills) so they read as warm and calm, not neon.
         magenta: {
-          400: '#f472e0',
-          500: '#e026d0',
-          600: '#c026d3',
-        },
-        neon: {
-          blue: '#3b82f6',
+          400: '#cf9f74',
+          500: '#b8875a',
+          600: '#9c6f47',
         },
         xp: {
-          from: '#22d3ee',
-          to: '#a855f7',
+          from: '#e0b374',
+          to: '#a97a35',
+        },
+        // Soft semantic states — desaturated so they read as calm signals,
+        // not alarms or arcade colors.
+        success: {
+          400: '#7dcca6',
+          500: '#5fb890',
+        },
+        danger: {
+          400: '#e08787',
+          500: '#d16b6b',
         },
       },
       fontFamily: {
+        // Space Grotesk is reserved for exactly three things per the brand
+        // guidelines: the hero headline, the Standing name, and the streak
+        // number. Everything else — including section headers — uses Inter.
         display: ['"Space Grotesk"', 'sans-serif'],
         body: ['"Inter"', 'sans-serif'],
       },
       boxShadow: {
-        glow: '0 0 20px rgba(168, 85, 247, 0.45)',
-        'glow-cyan': '0 0 20px rgba(34, 211, 238, 0.45)',
-        'glow-sm': '0 0 10px rgba(168, 85, 247, 0.35)',
+        // Softer, much lower-opacity glows in the new amber tone — "clean
+        // shadows" and "less visual noise" rather than a neon aura.
+        glow: '0 0 24px rgba(207, 154, 76, 0.22)',
+        'glow-cyan': '0 0 20px rgba(158, 180, 192, 0.18)',
+        'glow-sm': '0 0 12px rgba(207, 154, 76, 0.18)',
         card: '0 8px 32px rgba(0, 0, 0, 0.45)',
       },
       backgroundImage: {
-        'grid-pattern':
-          'linear-gradient(rgba(168,85,247,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.05) 1px, transparent 1px)',
+        // "Almost invisible" — a single, extremely faint warm-neutral
+        // vignette. No grid, no colored glow blobs, no purple.
         'radial-glow':
-          'radial-gradient(circle at 15% 0%, rgba(59,130,246,0.14), transparent 45%), radial-gradient(circle at 85% 10%, rgba(168,85,247,0.16), transparent 50%), radial-gradient(circle at 50% 100%, rgba(147,51,234,0.08), transparent 55%)',
-      },
-      backgroundSize: {
-        grid: '32px 32px',
+          'radial-gradient(120% 100% at 50% -10%, rgba(255,255,255,0.035), transparent 60%)',
       },
       keyframes: {
         'pulse-glow': {
           '0%, 100%': { opacity: 1, filter: 'brightness(1)' },
           '50%': { opacity: 0.85, filter: 'brightness(1.3)' },
-        },
-        'fill-bar': {
-          '0%': { width: '0%' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },

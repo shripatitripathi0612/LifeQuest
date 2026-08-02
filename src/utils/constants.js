@@ -1,12 +1,15 @@
+// Attribute colors are deliberately muted and desaturated — distinguishable
+// from one another for the radar chart / bars, but restrained rather than
+// neon, matching the app's broader move away from a bright gamified palette.
 export const ATTRIBUTES = [
-  { key: 'intelligence', label: 'Intelligence', color: '#22d3ee', icon: 'Brain' },
-  { key: 'strength', label: 'Strength', color: '#f87171', icon: 'Dumbbell' },
-  { key: 'vitality', label: 'Vitality', color: '#4ade80', icon: 'HeartPulse' },
-  { key: 'wisdom', label: 'Wisdom', color: '#a855f7', icon: 'BookOpen' },
-  { key: 'finance', label: 'Finance', color: '#facc15', icon: 'PiggyBank' },
-  { key: 'creativity', label: 'Creativity', color: '#f472e0', icon: 'Palette' },
-  { key: 'discipline', label: 'Discipline', color: '#60a5fa', icon: 'ShieldCheck' },
-  { key: 'spiritual', label: 'Spiritual Growth', color: '#5eead4', icon: 'Sparkles' },
+  { key: 'intelligence', label: 'Intelligence', color: '#8aa9c4', icon: 'Brain' },
+  { key: 'strength', label: 'Strength', color: '#c47b6f', icon: 'Dumbbell' },
+  { key: 'vitality', label: 'Vitality', color: '#7fb88a', icon: 'HeartPulse' },
+  { key: 'wisdom', label: 'Wisdom', color: '#8b8fa3', icon: 'BookOpen' },
+  { key: 'finance', label: 'Finance', color: '#c9a668', icon: 'PiggyBank' },
+  { key: 'creativity', label: 'Creativity', color: '#c98f7c', icon: 'Palette' },
+  { key: 'discipline', label: 'Discipline', color: '#7b95b8', icon: 'ShieldCheck' },
+  { key: 'spiritual', label: 'Spiritual Growth', color: '#7fb8ab', icon: 'Sparkles' },
 ];
 
 export const HABIT_CATEGORIES = [

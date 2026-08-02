@@ -8,16 +8,16 @@ export default function DailyQuestPanel() {
   if (!dailyQuestState) return null;
 
   return (
-    <div className="glass-panel p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Sparkles className="w-4 h-4 text-cyan-400" />
-        <h3 className="font-semibold text-white text-sm">Daily Quests</h3>
+    <div className="glass-panel p-6 sm:p-8">
+      <div className="flex items-center gap-2 mb-6">
+        <Sparkles className="w-4 h-4 text-electric-400" />
+        <h3 className="text-[15px] font-semibold text-white tracking-tight">Daily Quests</h3>
       </div>
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-4">
         {dailyQuestState.quests.map((q) => (
           <div key={q.id} className="flex items-center gap-3">
             {q.completed ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-success-400 shrink-0" />
             ) : (
               <Circle className="w-4 h-4 text-slate-600 shrink-0" />
             )}
@@ -25,9 +25,9 @@ export default function DailyQuestPanel() {
               <p className={`text-xs font-medium truncate ${q.completed ? 'text-slate-500 line-through' : 'text-slate-300'}`}>
                 {q.description}
               </p>
-              <div className="h-1 rounded-full bg-navy-900 mt-1 overflow-hidden">
+              <div className="h-1 rounded-full bg-white/[0.06] mt-1.5 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-cyan-400 to-electric-500 rounded-full transition-all"
+                  className="h-full bg-electric-500/70 rounded-full transition-all duration-300"
                   style={{ width: `${Math.min(100, (q.progress / q.target) * 100)}%` }}
                 />
               </div>

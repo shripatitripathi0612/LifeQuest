@@ -18,9 +18,8 @@ body,
 
 body {
   @apply bg-navy-950 text-slate-100 font-body antialiased;
-  background-image: theme('backgroundImage.radial-glow'),
-    theme('backgroundImage.grid-pattern');
-  background-size: 100% 100%, theme('backgroundSize.grid');
+  background-image: theme('backgroundImage.radial-glow');
+  background-size: 100% 100%;
   background-attachment: fixed;
   min-height: 100vh;
 }
@@ -42,12 +41,12 @@ body {
 
 @layer components {
   .glass-panel {
-    @apply bg-navy-800/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-card;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    @apply bg-navy-800/60 backdrop-blur-xl border border-white/[0.06] rounded-3xl shadow-card;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   .glass-panel-hover {
-    @apply glass-panel transition-all duration-300 hover:border-electric-500/40 hover:shadow-glow hover:-translate-y-0.5;
+    @apply glass-panel transition-all duration-300 hover:border-white/[0.1] hover:-translate-y-0.5;
   }
 
   .font-display {
@@ -60,7 +59,7 @@ body {
 
   .btn-primary {
     @apply relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm
-    bg-gradient-to-r from-electric-500 to-magenta-500 text-white shadow-glow-sm
+    bg-gradient-to-r from-electric-500 to-electric-600 text-white shadow-glow-sm
     transition-all duration-200 ease-out hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]
     disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-glow-sm disabled:active:scale-100;
   }
@@ -88,7 +87,7 @@ body {
 
   .xp-bar-fill {
     @apply h-full rounded-full bg-gradient-to-r from-xp-from to-xp-to relative;
-    box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+    box-shadow: 0 0 12px rgba(207, 154, 76, 0.45);
     transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
@@ -120,8 +119,23 @@ body {
     transition-all duration-200 ease-out hover:text-white hover:bg-white/5 active:scale-[0.98];
   }
 
-  .nav-link-active {
-    @apply text-white bg-gradient-to-r from-electric-500/20 to-magenta-500/10 border border-electric-500/30 shadow-glow-sm;
+  /* Dashboard hero — a deliberately distinct, more sophisticated surface than
+     the standard glass-panel used everywhere else. Neutral graphite gradient
+     (no purple, unlike the rest of the app's ambient glow) so the very first
+     thing a person sees reads as premium and calm rather than "gamer app." */
+  .hero-surface {
+    @apply relative overflow-hidden rounded-3xl border border-white/[0.07];
+    background:
+      radial-gradient(120% 140% at 15% -10%, rgba(255,255,255,0.05), transparent 55%),
+      radial-gradient(90% 120% at 100% 100%, rgba(255,255,255,0.03), transparent 60%),
+      linear-gradient(155deg, #131316 0%, #0c0c0e 55%, #08080a 100%);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 24px 60px -20px rgba(0,0,0,0.6);
+  }
+
+  .hero-progress-fill {
+    @apply h-full rounded-full;
+    background: linear-gradient(90deg, #d4b483 0%, #f2e2c8 100%);
+    box-shadow: 0 0 14px rgba(212, 180, 131, 0.3);
   }
 }
 
